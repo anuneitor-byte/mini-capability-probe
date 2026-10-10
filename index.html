@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prueba del Home Mini</title>
+<style>
+body{font:17px/1.6 system-ui,sans-serif;background:#f4f6f8;color:#182530;margin:0;padding:36px 20px}main{max-width:650px;margin:0 auto;background:white;padding:32px;border-radius:18px}h1{line-height:1.15}label{display:block}input,button{font:inherit;padding:10px;border:1px solid #8a99a5;border-radius:7px}input{max-width:100%;box-sizing:border-box}button{background:#174d73;color:white;cursor:pointer;margin-top:18px}button:disabled{opacity:.5;cursor:default}#status{padding:16px;background:#eef4f8;border-radius:9px}small{display:block;margin-top:22px}
+</style>
+</head>
+<body><main>
+<h1>Prueba del Home Mini</h1>
+<p>Abre el receptor de diagnóstico en tu altavoz mediante Google Cast. Esta página no solicita acceso al micrófono de tu PC.</p>
+<label for="appid">ID de la aplicación Cast</label><input id="appid" spellcheck="false" autocomplete="off" maxlength="32">
+<br><button id="connect" disabled>Elegir altavoz</button>
+<p id="status" role="status">Cargando Google Cast…</p>
+<p>Una vez abierto el receptor, conecta las herramientas de depuración al Mini y verifica la URL y el dispositivo. La prueba del micrófono se inicia únicamente mediante <code>await runConfirmedMiniProbe()</code> en ese contexto.</p>
+<small>No graba ni transmite audio. El registro Cast no garantiza permiso de micrófono ni permite sustituir por sí solo el asistente.</small>
+</main>
+<script>
+'use strict';
+const statusEl=document.getElementById('status');
+const appInput=document.getElementById('appid');
+const button=document.getElementById('connect');
+appInput.value=new URLSearchParams(location.search).get('appId')||'';
+window.__onGCastApiAvailable=function(available){
+  button.disabled=!available;
+  statusEl.textContent=available?'Listo. Introduce el ID registrado y elige tu Mini.':'Google Cast no está disponible en este navegador. Usa Chrome en el PC.';
+};
+button.addEventListener('click',async()=>{
+ const appId=appInput.value.trim();
+ if(!/^[A-Fa-f0-9]{8}$/.test(appId)){statusEl.textContent='Introduce el ID de ocho caracteres de tu aplicación Cast.';return;}
+ button.disabled=true;
+ try{
+  const context=cast.framework.CastContext.getInstance();
+  context.setOptions({receiverApplicationId:appId,autoJoinPolicy:chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED});
+  await context.requestSession();
+  statusEl.textContent='Sesión Cast abierta. La prueba del micrófono todavía no se ha ejecutado.';
+ }catch(error){statusEl.textContent='No se abrió la sesión: '+(error.message||String(error));}
+ finally{button.disabled=false;}
+});
+</script>
+<script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1" onerror="document.getElementById('status').textContent='No se pudo cargar Google Cast.'"></script>
+</body></html>
