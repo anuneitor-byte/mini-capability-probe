@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Home Mini: prueba de capacidad</title>
+  <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+  <script src="mini_microphone_probe.js"></script>
+</head>
+<body>
+  <cast-media-player></cast-media-player>
+  <script>
+    "use strict";
+    // No microphone request is made when this page loads.
+    // Invoke only through DevTools after verifying the target receiver.
+    globalThis.runConfirmedMiniProbe = async function () {
+      const result = await runHomeMiniMicrophoneProbe({confirmedMiniContext: true});
+      console.log("HOME_MINI_CAPABILITY_RESULT", JSON.stringify(result));
+      return result;
+    };
+    if (globalThis.cast && cast.framework) {
+      cast.framework.CastReceiverContext.getInstance().start();
+      console.log("HOME_MINI_PROBE_RECEIVER_LOADED: microphone probe has NOT run");
+    } else {
+      console.error("Cast SDK unavailable; receiver not started");
+    }
+  </script>
+</body>
+</html>
